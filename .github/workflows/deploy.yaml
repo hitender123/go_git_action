@@ -38,4 +38,4 @@ jobs:
         script: |
           cd /home/ubuntu/goprojects/src/go_git_action
           git pull origin master
-          docker compose up -d --build
+          sudo docker compose up -d --build
