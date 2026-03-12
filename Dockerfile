@@ -5,7 +5,7 @@ FROM golang:1.22 AS builder
 WORKDIR /api
 
 # Copy go.mod and go.sum first (better caching)
-COPY go.mod ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the rest of the source code
