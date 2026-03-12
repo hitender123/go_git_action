@@ -1,30 +1,32 @@
-# Stage 1: Build the Go binary
-FROM golang:1.22 AS builder
+# -------- Build Stage --------
+FROM golang:1.22-alpine AS builder
 
-# Set working directory inside container
-WORKDIR /api
+WORKDIR /app
 
-# Copy go.mod and go.sum first (better caching)
+# Install git for modules
+RUN apk add --no-cache git
+
+# Copy go mod first for caching
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the rest of the source code
+# Copy source
 COPY . .
 
-# Build the Go binary
-RUN go build -o main .
+# Build binary
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app .
 
-# Stage 2: Create a lightweight image
-FROM alpine:latest
+# -------- Runtime Stage --------
+FROM alpine:3.19
 
-# Set working directory inside container
-WORKDIR /api
+WORKDIR /app
 
-# Copy binary from builder stage
-COPY --from=builder /api/main .
+RUN apk add --no-cache ca-certificates
 
-# Expose port (adjust if your app uses a different one)
+# Copy binary from builder
+COPY --from=builder /app/app .
+
+# Expose port if API
 EXPOSE 8080
 
-# Run the binary
-CMD ["./main"]
+CMD ["./app"]

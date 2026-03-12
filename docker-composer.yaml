@@ -1,0 +1,16 @@
+services:
+
+  go_git_action:
+    build: .
+    container_name: go_git_action
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+    environment:
+      GO_ENV: production
+
+    volumes:
+      - .:/app
+
+    command: ./app
