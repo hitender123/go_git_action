@@ -2,13 +2,29 @@ name: Deploy Go Application
 
 on:
   push:
-    branches: [ master ]
-  #pull_request:
-    #branches: [ main, master ]
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
-jobs:  
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+    
+    - name: Run tests
+      run: go test -v ./...
+    
+    - name: Build application
+      run: go build -v ./...
+
   deploy:
-    needs: build-and-push
+    needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
@@ -20,6 +36,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-           cd /home/vagrant/goprojects/src/go_git_action
-           git pull
-           docker compose up -d --build
+          cd /home/vagrant/goprojects/src/go_git_action
+          git pull origin main
+          docker compose up -d --build
