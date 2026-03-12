@@ -37,5 +37,5 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /home/vagrant/goprojects/src/go_git_action
-          git pull origin mster
+          git pull origin master
           docker compose up -d --build
