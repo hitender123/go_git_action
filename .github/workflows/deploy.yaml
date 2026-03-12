@@ -29,13 +29,34 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:
-    - name: Deploy to server
+    - name: Test SSH Connection
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
+          echo "SSH connection successful!"
+          echo "Current user: $(whoami)"
+          echo "Current directory: $(pwd)"
+          echo "Server uptime: $(uptime)"
+          echo "Docker version: $(docker --version)"
+          echo "Docker Compose version: $(docker compose version)"
+    
+    - name: Deploy server via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          echo "Starting deployment..."
           cd /home/vagrant/goprojects/src/go_git_action
+          echo "Current directory: $(pwd)"
+          echo "Pulling latest changes..."
           git pull origin master
+          echo "Building and starting containers..."
           docker compose up -d --build
+          echo "Deployment completed!"
+          echo "Running containers:"
+          docker ps
