@@ -1,32 +1,31 @@
-# -------- Build Stage --------
-FROM golang:1.22-alpine AS builder
+# Stage 1: Build the Go binary
+FROM golang:1.22 AS builder
 
-WORKDIR /app
+WORKDIR /api
 
-# Install git for modules
-RUN apk add --no-cache git
-
-# Copy go mod first for caching
+# Copy go.mod and go.sum first for better caching
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source
+# Copy the rest of the source code
 COPY . .
 
-# Build binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app .
+# Build statically linked binary (smaller size, no CGO dependencies)
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o main .
 
-# -------- Runtime Stage --------
-FROM alpine:3.19
+# Stage 2: Create lightweight runtime image
+FROM alpine:latest AS runner
 
-WORKDIR /app
+WORKDIR /api
 
-RUN apk add --no-cache ca-certificates
+# Install certificates and timezone data for HTTPS and time handling
+RUN apk --no-cache add ca-certificates tzdata
 
-# Copy binary from builder
-COPY --from=builder /app/app .
+# Copy binary from builder stage
+COPY --from=builder /api/main .
 
-# Expose port if API
+# Expose application port
 EXPOSE 8080
 
-CMD ["./app"]
+# Run the binary
+CMD ["./main"]

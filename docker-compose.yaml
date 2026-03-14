@@ -1,11 +1,11 @@
 services:
-  app:
+  api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dockerfile
     ports:
       - "8080:8080"
-    container_name: go-app
+    container_name: go-api
     restart: unless-stopped
     environment:
       - ENV=production
