@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     container_name: go-api
